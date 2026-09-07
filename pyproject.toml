@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "funprint"
+version = "0.1.0"
+description = "Reverse-engineered Python library and CLI for Fun Print / Yintibao / MXW01 BLE thermal printers"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Joe" }
+]
+dependencies = [
+    "bleak>=0.21.0",
+    "pillow>=9.0.0"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+[project.scripts]
+funprint = "funprint.cli:main"
