@@ -20,7 +20,6 @@ from .protocol import (
     make_command,
 )
 from .image import prepare_image, text_to_image
-from .weather import fetch_weather_ticket
 
 logger = logging.getLogger("funprint")
 
@@ -193,12 +192,6 @@ class AsyncFunPrinter:
         img = text_to_image(text, font_size=font_size, align=align)
         await self.print_image(img, feed=feed, dither=False)
 
-    async def print_weather(self, city: str = "Rennes", feed: int = 90) -> None:
-        """
-        Fetches live weather from wttr.in and prints a receipt.
-        """
-        ticket = fetch_weather_ticket(city)
-        await self.print_image(ticket, feed=feed, dither=False)
 
     async def feed_paper(self, lines: int = 80) -> None:
         """
@@ -243,8 +236,6 @@ class FunPrinter:
     ) -> None:
         asyncio.run(self._async_printer.print_text(text, font_size=font_size, align=align, feed=feed))
 
-    def print_weather(self, city: str = "Rennes", feed: int = 90) -> None:
-        asyncio.run(self._async_printer.print_weather(city=city, feed=feed))
 
     def feed_paper(self, lines: int = 80) -> None:
         asyncio.run(self._async_printer.feed_paper(lines=lines))

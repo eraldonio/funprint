@@ -14,7 +14,6 @@ Reverse-engineered from the official `com.fun.mxw` (*Fun Print by Yintibao*) And
 * **High Quality Dithering**: Automatic Floyd-Steinberg dithering and Lanczos scaling for photos and graphics.
 * **Unified Paper Margin**: Merges feed margins directly into the raster stream to prevent job aborts.
 * **Self-Healing Connection**: Automatically detects and resets stale BlueZ adapter states on Linux.
-* **Built-in Weather Receipts**: Pulls live weather from `wttr.in` and formats ready-to-tear receipts.
 
 ---
 
@@ -43,8 +42,6 @@ funprint image /path/to/portrait.jpg --face-focus
 
 # Choose dithering algorithm: floyd (default), atkinson, or none
 funprint image /path/to/graphic.png --dither atkinson
-# Print live weather forecast (defaults to Rennes, or specify any city)
-funprint weather Rennes
 # Advance paper roll
 funprint feed 100
 
@@ -69,8 +66,6 @@ printer.print_text("Groceries:\n- Apples\n- Coffee\n- Oat Milk")
 # Print an image
 printer.print_image("badge.png", feed=80)
 
-# Print weather ticket
-printer.print_weather("Rennes")
 
 # Advance paper
 printer.feed_paper(lines=60)

@@ -10,7 +10,6 @@ from .client import (
     FunPrintJobError,
 )
 from .image import prepare_image, text_to_image
-from .weather import fetch_weather_ticket
 from .protocol import (
     PRINTER_WIDTH,
     PRINTER_WIDTH_BYTES,
@@ -27,7 +26,6 @@ __all__ = [
     "FunPrintJobError",
     "prepare_image",
     "text_to_image",
-    "fetch_weather_ticket",
     "PRINTER_WIDTH",
     "PRINTER_WIDTH_BYTES",
     "Command",

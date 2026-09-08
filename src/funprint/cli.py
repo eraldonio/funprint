@@ -31,10 +31,6 @@ def main():
     img_parser.add_argument("--face-focus", action="store_true", help="Auto-detect faces, frame with bust, and choose best orientation")
     img_parser.add_argument("--gamma", "-g", type=float, default=1.0, help="Gamma lift for thermal dot gain (default: 1.0)")
 
-    # weather subcommand
-    weather_parser = subparsers.add_parser("weather", help="Print wttr.in weather forecast")
-    weather_parser.add_argument("city", nargs="?", default="Rennes", help="City name (default: Rennes)")
-    weather_parser.add_argument("--feed", "-f", type=int, default=90, help="Paper feed lines (default: 90)")
 
     # feed subcommand
     feed_parser = subparsers.add_parser("feed", help="Advance blank paper")
@@ -60,10 +56,6 @@ def main():
         elif args.command == "image":
             print(f"Printing image: {args.path} (dither={args.dither}, face_focus={args.face_focus})...")
             printer.print_image(args.path, feed=args.feed, dither=args.dither, face_focus=args.face_focus)
-            print("Done!")
-        elif args.command == "weather":
-            print(f"Fetching and printing weather forecast for {args.city}...")
-            printer.print_weather(city=args.city, feed=args.feed)
             print("Done!")
         elif args.command == "feed":
             printer.feed_paper(lines=args.lines)
