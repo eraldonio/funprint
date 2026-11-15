@@ -14,8 +14,11 @@ authors = [
 ]
 dependencies = [
     "bleak>=0.21.0",
-    "pillow>=9.0.0"
+    "pillow>=9.1.0"
 ]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
