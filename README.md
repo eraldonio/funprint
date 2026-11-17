@@ -40,7 +40,14 @@ printer with the global `--mac` option before the subcommand. On macOS this valu
 is the device UUID reported by BLE discovery, rather than its hardware MAC
 address; the repository's default address belongs to an example device.
 
+For a fresh Mac setup, see [QUICKSTART_FOR_FRIENDS.md](QUICKSTART_FOR_FRIENDS.md).
+It covers installing Python and FunPrint, finding the printer, converting a
+folder to JPEG, previewing a batch, and printing it.
+
 ```bash
+# Find nearby Fun Print printers and show their BLE addresses
+funprint scan
+
 # Print text
 funprint text "Hello World!\nPrinted from Linux CLI."
 # Print an image (auto-scaled to 384px with Floyd-Steinberg dithering)
@@ -59,6 +66,16 @@ funprint keepalive
 ```
 
 ### Print all pictures from a local folder
+
+The helper script `scripts/convert_folder_to_jpeg.py` makes JPEG copies of a
+folder of images (originals stay untouched). It saves them into a `JPEG`
+subfolder by default:
+
+```bash
+python3 scripts/convert_folder_to_jpeg.py "/path/to/photos"
+```
+
+Then use `funprint folder` to preview or print that `JPEG` subfolder.
 
 ```bash
 # List the pictures without connecting to the printer

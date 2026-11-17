@@ -157,6 +157,29 @@ def _print_folder(args):
     print(f"Done! Printed {len(paths)} image(s).")
 
 
+async def _scan_printers():
+    """Show nearby Fun Print printers and the BLE addresses used by this CLI."""
+    from bleak import BleakScanner
+    from bleak.exc import BleakError
+
+    try:
+        devices = await BleakScanner.discover(timeout=6.0)
+    except (BleakError, OSError) as exc:
+        raise FunPrintConnectionError(f"Bluetooth scan failed: {exc}") from exc
+
+    printers = [
+        device for device in devices
+        if device.name and ("MX" in device.name or "Fun" in device.name)
+    ]
+    if not printers:
+        print("No nearby Fun Print printers found. Turn the printer on and try again.")
+        return
+
+    print("Nearby Fun Print printers (use the address with --mac):")
+    for device in printers:
+        print(f"  {device.name}\t{device.address}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="funprint",
@@ -191,6 +214,8 @@ def main():
     folder_parser.add_argument("--recursive", "-r", action="store_true", help="Include images in subfolders")
     _add_batch_options(folder_parser)
 
+    subparsers.add_parser("scan", help="Find nearby Fun Print printers and show their BLE addresses")
+
 
     # feed subcommand
     feed_parser = subparsers.add_parser("feed", help="Advance blank paper")
@@ -212,6 +237,9 @@ def main():
             return
         if args.command == "folder":
             _print_folder(args)
+            return
+        if args.command == "scan":
+            asyncio.run(_scan_printers())
             return
 
         printer = FunPrinter(address=args.mac)
