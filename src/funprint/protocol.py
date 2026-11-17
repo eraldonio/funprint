@@ -25,6 +25,39 @@ class Command(IntEnum):
     FLUSH = 0xAD
 
 
+class NotificationParser:
+    """Reassemble response headers/payloads across BLE notification chunks.
+
+    Firmware variants use different trailers. The length field covers the
+    payload only; trailer bytes are skipped while looking for the next header.
+    """
+
+    def __init__(self):
+        self.buffer = bytearray()
+
+    def feed(self, data: bytes | bytearray) -> list[tuple[int, bytes]]:
+        self.buffer.extend(data)
+        packets = []
+        while self.buffer:
+            start = self.buffer.find(b"\x22\x21")
+            if start < 0:
+                self.buffer[:] = b"\x22" if self.buffer[-1] == 0x22 else b""
+                break
+            del self.buffer[:start]
+            if len(self.buffer) < 6:
+                break
+            length = int.from_bytes(self.buffer[4:6], "little")
+            if length > 4096:
+                del self.buffer[:2]
+                continue
+            end = 6 + length
+            if len(self.buffer) < end:
+                break
+            packets.append((self.buffer[2], bytes(self.buffer[6:end])))
+            del self.buffer[:end]
+        return packets
+
+
 def crc8(data: bytes | bytearray) -> int:
     """Calculates Dallas/Maxim CRC-8 with polynomial 0x07."""
     crc = 0

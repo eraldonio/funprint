@@ -5,11 +5,30 @@ Features Atkinson dithering, gamma compensation, and edge enhancement.
 
 from typing import Union, Literal
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+import warnings
+
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps, ImageEnhance
 from .protocol import PRINTER_WIDTH, PRINTER_WIDTH_BYTES
 from .faces import detect_and_frame_faces
 
 DitherType = Literal["atkinson", "floyd", "none", "threshold"]
+
+
+def save_normalized_image(source, destination: Path, *, max_width: int | None = None) -> None:
+    """Fully decode an image, apply camera orientation, and save on white."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", Image.DecompressionBombWarning)
+        with Image.open(source) as original:
+            # JPEG can decode at a smaller size before expensive PNG staging.
+            if max_width:
+                original.draft("RGB", (max_width, max_width))
+            image = ImageOps.exif_transpose(original).convert("RGBA")
+            if max_width and image.width > max_width:
+                height = max(1, round(image.height * max_width / image.width))
+                image = image.resize((max_width, height), Image.Resampling.LANCZOS)
+            background = Image.new("RGBA", image.size, "white")
+            background.alpha_composite(image)
+            background.convert("RGB").save(destination, "PNG")
 
 
 def apply_gamma(img: Image.Image, gamma: float = 1.4) -> Image.Image:
@@ -25,7 +44,7 @@ def atkinson_dither(img: Image.Image) -> Image.Image:
     Discards 25% of error to keep shadow detail open and prevent thermal smudging.
     """
     w, h = img.size
-    pixels = list(img.convert("L").getdata())
+    pixels = list(img.convert("L").tobytes())
 
     for y in range(h):
         y_offset = y * w
@@ -66,13 +85,15 @@ def prepare_image(
     dither: Union[bool, DitherType] = "floyd",
     gamma: float = 1.0,
     sharpen: bool = False,
-    face_focus: bool = False
+    face_focus: bool = False,
+    contrast: float = 1.0
 ) -> tuple[bytearray, int]:
     """
     Loads, scales to 384px, enhances contrast/gamma, dithers to 1-bit, and generates raster bytes.
     """
     if isinstance(image_input, (str, Path)):
-        img = Image.open(str(image_input))
+        with Image.open(str(image_input)) as source:
+            img = source.copy()
     elif isinstance(image_input, Image.Image):
         img = image_input.copy()
     else:
@@ -98,6 +119,8 @@ def prepare_image(
 
     if dither_method == "atkinson":
         gray = img.convert("L")
+        if contrast != 1.0:
+            gray = ImageEnhance.Contrast(gray).enhance(contrast)
         if gamma and gamma != 1.0:
             gray = apply_gamma(gray, gamma=gamma)
         if sharpen:
@@ -105,12 +128,19 @@ def prepare_image(
         img_bw = atkinson_dither(gray)
     elif dither_method == "floyd":
         gray = img.convert("L")
+        if contrast != 1.0:
+            gray = ImageEnhance.Contrast(gray).enhance(contrast)
         if gamma and gamma != 1.0:
             gray = apply_gamma(gray, gamma=gamma)
         img_bw = gray.convert("1", dither=Image.Dither.FLOYDSTEINBERG)
     else:
         # None / Threshold
-        img_bw = img.convert("L").convert("1", dither=Image.Dither.NONE)
+        gray = img.convert("L")
+        if contrast != 1.0:
+            gray = ImageEnhance.Contrast(gray).enhance(contrast)
+        if gamma and gamma != 1.0:
+            gray = apply_gamma(gray, gamma=gamma)
+        img_bw = gray.convert("1", dither=Image.Dither.NONE)
 
     width, height = img_bw.size
     pixels = img_bw.load()
